@@ -1,7 +1,6 @@
 # Data and Label Conventions
 
-This document describes conventions in the packaged code. It does not
-imply that real experimental data have been validated.
+Data layouts, class mappings, and subject alignment requirements.
 
 ## Eye images
 
@@ -16,8 +15,7 @@ data/<species>/<modality>/
   ordering. All three splits must contain the same class directories,
   with identical directory-to-integer label mappings.
 - The human examples use `1-30`, `30-60`, `60-80`, and `80+`.
-  Boundary-age assignment is defined by the dataset; packaging does not
-  regroup subjects.
+  Boundary-age assignment is defined by the dataset.
 - Mouse fusion assumes that the eye classifier outputs
   `12M, 18M, 3M, 8W`, then reorders the columns to `8W, 3M, 12M, 18M`.
 - Do not mix human checkpoints, classes, or label semantics into mouse
@@ -76,7 +74,7 @@ S002,0.5,0.6,1
 - Tri-modal fusion requires matching IDs across gait, behavior, and both
   eye modalities. `--subject_order` must contain all test IDs without
   duplicates. The original code has alignment limitations for gait and
-  the second eye modality; see `MIGRATION.md`.
+  the second eye modality; see `USAGE_NOTES.md`.
 
 ## Continuous-age scores
 
@@ -87,5 +85,4 @@ index, which the original function uses to select an age anchor.
 `max_index` is not required for this step.
 
 Scores are normalized by their row sums. Check for zero row sums, missing
-values, and unexpected negative scores. The scoring formula has not been
-modified.
+values, and unexpected negative scores.

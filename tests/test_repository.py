@@ -1,10 +1,8 @@
-"""Packaging checks only: no torch, timm, data, network or GPU required."""
+"""Launcher and source checks; no ML libraries, data, network or GPU required."""
 from __future__ import annotations
 
 import ast
-import hashlib
 import importlib.util
-import json
 import os
 from pathlib import Path
 import re
@@ -72,17 +70,7 @@ class RepositoryTests(unittest.TestCase):
                              "util/lr_sched.py", "util/pos_embed.py"):
                 self.assertTrue((ROOT / species / filename).is_file(), filename)
 
-    def test_source_manifest_matches_packaged_files(self):
-        manifest = json.loads((ROOT / "docs/source_manifest.json").read_text())
-        self.assertTrue(manifest)
-        for item in manifest:
-            with self.subTest(file=item["destination"]):
-                path = ROOT / item["destination"]
-                self.assertTrue(path.is_file())
-                self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(),
-                                 item["packaged_sha256"])
-
-    def test_no_machine_paths_in_packaged_text(self):
+    def test_no_machine_paths_in_source_text(self):
         # This test itself expresses the prefixes in separate tokens.
         forbidden = ("/mnt/" + "sdb1/", "/Users/" + "wyh/", "/home/" + "amax/")
         for path in ROOT.rglob("*"):

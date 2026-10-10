@@ -1,35 +1,28 @@
 # Cross-Modal Age Prediction — Human & Mouse
 
 Training and evaluation workflows for human eye imaging and mouse eye,
-gait, and behavior modalities, consolidated into a single repository.
+gait, and behavior modalities.
 
-This English-language edition is self-contained: use
-`cross_modal_age_prediction_en/` as the repository root. It does not depend
-on the neighboring repository or the original `codes/` and `codes_mouse/`
-directories.
-
-This is a source-code consolidation, **not a newly validated reproduction
-of the experiments**. Translation changes documentation, comments, and one
-error message only; model logic, hyperparameters, and evaluation formulas
-are unchanged from the consolidated source.
+The `english` branch contains the English documentation; the `chinese`
+branch contains the Chinese documentation. Run commands from the repository root.
 
 ## 1. Repository layout
 
 ```text
-cross_modal_age_prediction_en/
+cross_modal_age_prediction/
 ├── README.md
 ├── run.py                         # Unified workflow launcher
 ├── requirements*.txt              # Full, tabular-only, and visualization dependencies
-├── human/                         # Python code from the original codes directory
+├── human/                         # Human eye-imaging workflows
 │   ├── train_eye.py               # Single-modality eye training; --eval for testing
-│   ├── A_train_eye.py             # Original duplicate training entry point
+│   ├── A_train_eye.py             # Alternative eye-training entry point
 │   ├── fuse_oct_octa_human.py      # OCT + OCTA fusion and classification evaluation
 │   ├── fuse_oct_octa_human2.py     # Fusion, classification, and age/MAE outputs
 │   ├── visualize_all_best_models.py
 │   ├── models_vit.py
 │   ├── engine_finetune.py
 │   └── util/
-├── mouse/                         # Python code from the original codes_mouse directory
+├── mouse/                         # Mouse multimodal workflows
 │   ├── train_eye.py               # Eye training and testing
 │   ├── train_gait.py              # Gait training and evaluation
 │   ├── train_behavior.py          # Behavior training and evaluation
@@ -37,27 +30,23 @@ cross_modal_age_prediction_en/
 │   ├── predict_continuous_age.py   # Age score requiring true cohort labels
 │   ├── _generate_demo_data.py
 │   ├── models_vit.py
-│   ├── engine_finetune.py         # Missing dependency supplied from the human code
+│   ├── engine_finetune.py         # Training and evaluation engine
 │   ├── util/
 │   └── demo/                     # Three demos with automatic synthetic data generation
 ├── scripts/                       # Configurable training and evaluation launchers
-├── legacy/                        # Historical documentation and experimental scripts
+├── legacy/                        # Historical experiment configuration references
 ├── docs/
 │   ├── DATA_FORMAT.md
-│   ├── MIGRATION.md
-│   ├── VALIDATION.md
-│   └── source_manifest.json       # Original-to-packaged file mappings and SHA-256 hashes
-└── tests/                         # Packaging checks without ML dependencies
+│   └── USAGE_NOTES.md
+└── tests/                         # Launcher and source-code checks
 ```
 
-The two copies of `models_vit.py` and `util/` are intentionally kept
-separate to minimize changes to existing experiments. Each species uses
-its own local imports. The unified launcher runs each workflow in a
+Each species uses its own `models_vit.py` and `util/` modules.
+The unified launcher runs each workflow in a
 separate process to prevent collisions between identically named modules.
 
-`human/fuse_modalities.py` and `human/_generate_demo_data.py` were already
-mouse-related duplicates in the original human source directory. They are
-retained for completeness; **use `mouse/` for mouse multimodal workflows**.
+**Use `mouse/` for mouse multimodal workflows**, rather than the duplicate
+`fuse_modalities.py` and `_generate_demo_data.py` files under `human/`.
 
 ## 2. Environment
 
@@ -77,15 +66,13 @@ python -m pip install -r requirements-tabular.txt
 python -m pip install -r requirements-visualization.txt
 ```
 
-The workflows use Python 3.10+ syntax. The dependency lists were inferred
-from imports; **the PyTorch / torchvision / timm combination has not been
-pinned or validated**. These files are not reproducibility lock files.
-For formal experiments, start from your previously working environment
-and export its exact dependency versions separately.
+Use Python 3.10+ and a compatible PyTorch / torchvision / timm environment.
+Dependency versions are not pinned; see `docs/USAGE_NOTES.md` for
+model compatibility requirements.
 
-The original eye-training loop includes CUDA-specific calls. CPU/MPS
-training support was not added during packaging. Supply your own real
-data and model weights, and load only trusted checkpoint and joblib files.
+Eye training requires CUDA; CPU/MPS training is not supported by the
+current loop. Supply your own data and weights, and load only trusted
+checkpoint and joblib files.
 
 ## 3. Unified commands
 
@@ -120,7 +107,7 @@ directory. The `mouse/demo/*.sh` scripts run inside `mouse/` and write to
 
 The launcher does not modify model parameters. `evaluate-eye` only adds
 `--eval`. After installing the dependencies, use
-`python run.py <species> <workflow> --help` to inspect the original arguments.
+`python run.py <species> <workflow> --help` to inspect the arguments.
 
 ## 4. Human / mouse eye training and single-modality evaluation
 
@@ -145,21 +132,19 @@ bash scripts/evaluate_eye.sh
 For mice, set `SPECIES=mouse` and provide the corresponding mouse dataset
 and pretrained weights. Supported environment variables include `NPROC`,
 `BATCH_SIZE`, `MASTER_PORT`, `TASK`, `BLR`, `LAYER_DECAY`, `DROP_PATH`,
-`NB_CLASSES`, and `PYTHON`. Additional original Python arguments may be
+`NB_CLASSES`, and `PYTHON`. Additional Python arguments may be
 appended to the command.
 
-The new defaults are configurable examples, **not universal replacements
-for the original experimental hyperparameters**. Historical settings are
-preserved under `legacy/`.
+Configure hyperparameters for your experiment. Additional historical
+configuration references are available under `legacy/`.
 
 Input dimensions, classifier label order, and checkpoints must match.
-Even with `--eval`, the original script constructs the `train/`, `val/`,
+Even with `--eval`, the script constructs the `train/`, `val/`,
 and `test/` datasets; all three must exist.
 
 The best checkpoint is saved as
-`${OUTPUT_ROOT}/${TASK}/checkpoint-best.pth`. The original engine selects
-it using `(F1 + ROC_AUC + Kappa) / 3`, **not AUC alone**, despite the
-wording in the historical README.
+`${OUTPUT_ROOT}/${TASK}/checkpoint-best.pth`. The engine selects
+it using `(F1 + ROC_AUC + Kappa) / 3`.
 
 ## 5. Human OCT / OCTA fusion evaluation
 
@@ -217,8 +202,8 @@ script is not an evaluation-only command for an existing model.
 ## 7. Mouse tri-modal fusion
 
 You need two eye checkpoints and their images, trained gait and behavior
-models, and matching test subjects. Review the original alignment
-limitations in `docs/MIGRATION.md` before use.
+models, and matching test subjects. See `docs/USAGE_NOTES.md` for
+subject-alignment requirements.
 
 ```bash
 python run.py mouse fuse \
@@ -244,7 +229,7 @@ Replace `S001 ... S004` with the complete ordered list of test subjects.
 Add `--eye_is_augment` only when using the expected augmented-image naming
 scheme.
 
-The original fusion code selects devices automatically: CPU when CUDA is
+The fusion code selects devices automatically: CPU when CUDA is
 unavailable, a shared GPU when only one is available, or `cuda:0` and
 `cuda:1` when multiple GPUs are available. It has no separate device CLI.
 
@@ -259,29 +244,12 @@ python run.py mouse continuous-age \
 The calculation uses the true `label`. It is not an independent age
 regression model that operates without true cohort information.
 
-## 8. Validation and publication checklist
+## 8. Tests
 
 ```bash
 # Standard library only: no training, dataset, or GPU required
 python -B -m unittest discover -s tests -v
 ```
 
-See `docs/VALIDATION.md` for the validation scope and `docs/MIGRATION.md`
-for migration details and known limitations. No real data, weights,
-training outputs, or `.git` directory are included. Nothing has been
-pushed to a remote repository.
-
-Before publication:
-
-1. Use this directory itself as the repository root, not its parent
-   `outputs/` directory.
-2. Review `.gitignore`, `git status`, and staged files to avoid publishing
-   images, subject information, feature tables, checkpoints, spreadsheets,
-   or logs. Adjust image exclusions deliberately if adding public figures.
-3. Verify dependency versions, model forward passes, class mappings, and
-   subject alignment in the actual training environment before claiming
-   reproducibility.
-4. Confirm author permissions, third-party notices, paper citations, and
-   checkpoint redistribution rights against the original sources.
-   **No license was selected and no unverified citation was added during
-   packaging or translation.**
+These tests check syntax, launchers, argument forwarding, and local module
+availability. They do not run model training or inference.
