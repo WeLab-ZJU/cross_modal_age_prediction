@@ -1,0 +1,6 @@
+python vis_vit_cam.py \
+  --model-path /path/to/checkpoint-best.pth \
+  --input /path/to/test/images \
+  --output-dir /path/to/vis \
+  --methods gradcam,gradcamplusplus,xgradcam,eigencam,eigengradcam,layercam \
+  --device cuda:0

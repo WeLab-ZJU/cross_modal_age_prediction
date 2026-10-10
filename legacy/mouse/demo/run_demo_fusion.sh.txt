@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Fuse the three modalities into a per-subject feature vector and produce the
+# evaluation report. You must provide real paths to the eye checkpoints, eye
+# test images, and the tabular models trained with the other two demos.
+#
+# This script is a TEMPLATE: edit the variables below before running.
+
+set -e
+cd "$(dirname "$0")/.."
+
+EYE_ARCH="vit_base_patch16"
+EYE_CKPT_A="./checkpoints/eye/fundus/checkpoint-best.pth"
+EYE_CKPT_B="./checkpoints/eye/octa/checkpoint-best.pth"
+EYE_TEST_ROOT_A="./data/fundus/test"       # class subfolders: 8W 3M 12M 18M
+EYE_TEST_ROOT_B="./data/octa/test"
+EYE_IMG_SIZE=256
+EYE_EPOCHS=700
+
+BEHAVIOR_TEST_CSV="./outputs/splits/behavior_test.csv"
+BEHAVIOR_MODEL_DIR="./outputs/demo_behavior_model"
+
+GAIT_TEST_CSV="./outputs/splits/gait_test.csv"
+GAIT_MODEL_DIR="./outputs/demo_gait_model"
+
+# Order of subject IDs expected by the tabular classifiers (same as used for
+# training). Edit this list to match your split.
+SUBJECT_ORDER=(
+    "S000" "S001" "S002" "S003" "S004" "S005"
+    "S006" "S007" "S008" "S009" "S010" "S011"
+)
+
+python fuse_modalities.py \
+    --eye_arch "${EYE_ARCH}" \
+    --eye_ckpt_a "${EYE_CKPT_A}" \
+    --eye_ckpt_b "${EYE_CKPT_B}" \
+    --eye_test_root_a "${EYE_TEST_ROOT_A}" \
+    --eye_test_root_b "${EYE_TEST_ROOT_B}" \
+    --eye_img_size "${EYE_IMG_SIZE}" \
+    --eye_epochs "${EYE_EPOCHS}" \
+    --eye_is_augment \
+    --behavior_test_csv "${BEHAVIOR_TEST_CSV}" \
+    --behavior_model_dir "${BEHAVIOR_MODEL_DIR}" \
+    --behavior_classifier ExtraTrees \
+    --behavior_n_features 28 \
+    --gait_test_csv "${GAIT_TEST_CSV}" \
+    --gait_model_dir "${GAIT_MODEL_DIR}" \
+    --gait_classifier ExtraTrees \
+    --gait_feature_cols feature1 feature2 \
+    --subject_order "${SUBJECT_ORDER[@]}" \
+    --output_feature_dir ./outputs/fused_features \
+    --output_report_xlsx ./outputs/reports/fusion_report.xlsx \
+    --use_fixed_weights

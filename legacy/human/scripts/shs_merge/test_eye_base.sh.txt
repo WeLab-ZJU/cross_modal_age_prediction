@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Evaluate trained OCT/OCTA checkpoints with entropy feature fusion (fuse_oct_octa_human.py).
+# DATA_TAG selects the dataset folder under <HUMAN_DATA_ROOT>/ (dataset | merge).
+
+DATA_TAG="merge"
+MODEL_TYPE="mae-"
+MODEL_TYPE=""
+INPUT_SIZE=256
+
+ARCH="vit_base_patch16"
+EXP_NAME="finetune-HCF-2000"
+
+OCT_CKPT="<HUMAN_OUTPUT_ROOT>/${DATA_TAG}/OCT/mae-${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+OCTA_CKPT="<HUMAN_OUTPUT_ROOT>/${DATA_TAG}/OCTA/${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+
+OCT_CKPT="<HUMAN_OUTPUT_ROOT>/${DATA_TAG}/OCT/${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+OCTA_CKPT="<HUMAN_OUTPUT_ROOT>/${DATA_TAG}/OCTA/${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+
+OCT_TEST_ROOT="<HUMAN_DATA_ROOT>/${DATA_TAG}/OCT/test"
+OCTA_TEST_ROOT="<HUMAN_DATA_ROOT>/${DATA_TAG}/OCTA/test"
+
+OUTPUT_DIR="<HUMAN_OUTPUT_ROOT>/human_oct_octa_fusion/${DATA_TAG}/${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}"
+
+python <HUMAN_CODE_ROOT>/fuse_oct_octa_human2.py \
+    --oct_ckpt "$OCT_CKPT" \
+    --octa_ckpt "$OCTA_CKPT" \
+    --oct_test_root "$OCT_TEST_ROOT" \
+    --octa_test_root "$OCTA_TEST_ROOT" \
+    --oct_arch "$ARCH" \
+    --octa_arch "$ARCH" \
+    --oct_img_size "$INPUT_SIZE" \
+    --octa_img_size "$INPUT_SIZE" \
+    --num_classes 4 \
+    --class_order "1-30" "30-60" "60-80" "80+" \
+    --output_dir "$OUTPUT_DIR" \
+    --overwrite

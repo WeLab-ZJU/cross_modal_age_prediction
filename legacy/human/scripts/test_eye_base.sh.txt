@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+MODEL_TYPE="mae-"
+MODEL_TYPE=""
+DATA_TYPE="augv2"
+INPUT_SIZE=256
+
+ARCH="vit_base_patch16"
+EXP_NAME="finetune-HCF-1000"
+
+OCT_CKPT="<HUMAN_OUTPUT_ROOT>/OCT/mae-${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+OCTA_CKPT="<HUMAN_OUTPUT_ROOT>/OCTA/${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+
+OCT_CKPT="<HUMAN_OUTPUT_ROOT>/OCT/${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+OCTA_CKPT="<HUMAN_OUTPUT_ROOT>/OCTA/mae-${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}/checkpoint-best.pth"
+
+OCT_TEST_ROOT="<HUMAN_DATA_ROOT>/OCTA_500_${DATA_TYPE}/OCT/test"
+OCTA_TEST_ROOT="<HUMAN_DATA_ROOT>/OCTA_500_${DATA_TYPE}/OCTA/test"
+
+OUTPUT_DIR="<HUMAN_OUTPUT_ROOT>/human_oct_octa_fusion/OCTA_500_${DATA_TYPE}/${MODEL_TYPE}${ARCH}/eye-${INPUT_SIZE}/${EXP_NAME}"
+
+python <HUMAN_CODE_ROOT>/fuse_oct_octa_human.py \
+    --oct_ckpt "$OCT_CKPT" \
+    --octa_ckpt "$OCTA_CKPT" \
+    --oct_test_root "$OCT_TEST_ROOT" \
+    --octa_test_root "$OCTA_TEST_ROOT" \
+    --oct_arch "$ARCH" \
+    --octa_arch "$ARCH" \
+    --oct_img_size "$INPUT_SIZE" \
+    --octa_img_size "$INPUT_SIZE" \
+    --num_classes 4 \
+    --class_order "1-30" "30-60" "60-80" "80+" \
+    --output_dir "$OUTPUT_DIR" \
+    --overwrite
