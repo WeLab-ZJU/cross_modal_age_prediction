@@ -1,14 +1,12 @@
-# Historical references — not runnable launchers
+# 历史实验配置
 
-本目录保留来源目录中的 README 与 shell 实验记录。
+本目录的 `.sh.txt` 文件仅作为配置参考，不是可直接运行的启动脚本。
 
-- `human/` 对应原 `codes/`。
-- `mouse/` 对应原 `codes_mouse/`。
-- `.sh.txt` 是历史文本，不是现行可运行模板。
-- 个人服务器路径已替换为 `<HUMAN_CODE_ROOT>`、`<HUMAN_DATA_ROOT>`、
-  `<HUMAN_OUTPUT_ROOT>`、`<PRETRAINED_ROOT>` 等占位符。
-- 超参数与重复赋值保持原样，不能假设其中所有实验组合都正确。
-- 历史 README 的外部仓库链接、匿名化、环境、license 和方法描述未经核实，
-  不作为此次打包后的公开声明。
+- `human/` 包含人类眼球实验配置。
+- `mouse/` 包含小鼠眼球及多模态实验配置。
+- `<HUMAN_DATA_ROOT>`、`<HUMAN_OUTPUT_ROOT>`、`<PRETRAINED_ROOT>` 等为路径占位符。
+- 同一变量多次赋值时，以最后一次为准。复用配置前请核对 GPU 数量、
+  图像尺寸和支持的参数。
 
-请从仓库根 README、`run.py`、`scripts/` 和 `mouse/demo/` 开始使用。
+运行命令见根 README、`run.py`、`scripts/` 和 `mouse/demo/`。
+配置注意事项见 `docs/USAGE_NOTES.md`。

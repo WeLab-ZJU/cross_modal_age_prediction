@@ -1,12 +1,9 @@
 # Cross-Modal Age Prediction — Human & Mouse
 
-统一整理的人类眼球与小鼠眼球、步态、行为模态训练及评测代码。
-本目录可单独作为 GitHub 仓库根目录，不依赖上级的 `codes/` 或 `codes_mouse/`。
+人类眼球与小鼠眼球、步态、行为模态训练及评测代码。
 
-This repository collects human eye-imaging workflows and mouse eye, gait,
-and behavior workflows in one repository, with separate local modules for
-each species. It is a source-code consolidation, **not a newly validated
-reproduction of the experiments**.
+`chinese` 分支提供中文说明，`english` 分支提供英文说明。
+以下命令均从仓库根目录运行。
 
 ## 1. 目录与入口
 
@@ -15,16 +12,16 @@ cross_modal_age_prediction/
 ├── README.md
 ├── run.py                         # 统一命令分发器
 ├── requirements*.txt              # 完整 / 表格模型 / 可视化依赖清单
-├── human/                         # 原 codes 中的 Python 代码
+├── human/                         # 人类眼球工作流
 │   ├── train_eye.py               # 眼球单模态训练；--eval 测试
-│   ├── A_train_eye.py             # 原有重复训练入口，保留用于追溯
+│   ├── A_train_eye.py             # 备用眼球训练入口
 │   ├── fuse_oct_octa_human.py      # OCT + OCTA 融合分类评测
 │   ├── fuse_oct_octa_human2.py     # 融合分类评测 + 年龄/MAE 输出
 │   ├── visualize_all_best_models.py
 │   ├── models_vit.py
 │   ├── engine_finetune.py
 │   └── util/
-├── mouse/                         # 原 codes_mouse 中的 Python 代码
+├── mouse/                         # 小鼠多模态工作流
 │   ├── train_eye.py               # 眼球训练 / 测试
 │   ├── train_gait.py              # 步态训练并评测
 │   ├── train_behavior.py          # 行为训练并评测
@@ -32,23 +29,21 @@ cross_modal_age_prediction/
 │   ├── predict_continuous_age.py   # 依赖真实年龄组标签的连续年龄分数
 │   ├── _generate_demo_data.py
 │   ├── models_vit.py
-│   ├── engine_finetune.py         # 从 human 补齐的缺失依赖
+│   ├── engine_finetune.py         # 训练与评测引擎
 │   ├── util/
 │   └── demo/                     # 3 个自动生成合成数据的演示
 ├── scripts/                       # 可配置的训练、单模态测试、人类融合入口
-├── legacy/                        # 历史 README 和实验脚本，仅供参考
+├── legacy/                        # 历史实验配置参考
 ├── docs/
 │   ├── DATA_FORMAT.md
-│   ├── MIGRATION.md
-│   ├── VALIDATION.md
-│   └── source_manifest.json       # 原文件 → 新文件及 SHA-256
-└── tests/                         # 无 ML 依赖的打包检查
+│   └── USAGE_NOTES.md
+└── tests/                         # 启动器与源码检查
 ```
 
-为减少迁移对既有实验的影响，没有强行合并两个 `models_vit.py` 和 `util/`；
-每个物种仍使用自己的本地导入。统一入口通过独立进程运行，避免同名模块串用。
-`human/fuse_modalities.py` 和 `human/_generate_demo_data.py` 是原人类目录中
-已有的小鼠代码副本，仅为完整保留而存在；**小鼠多模态工作流请用 `mouse/`**。
+每个物种使用自己的 `models_vit.py` 和 `util/` 模块。
+统一入口通过独立进程运行，避免同名模块串用。
+**小鼠多模态工作流请用 `mouse/`**，不要使用 `human/` 下重复的
+`fuse_modalities.py` 和 `_generate_demo_data.py`。
 
 ## 2. 环境
 
@@ -68,11 +63,11 @@ python -m pip install -r requirements-tabular.txt
 python -m pip install -r requirements-visualization.txt
 ```
 
-代码使用 Python 3.10+ 语法。依赖清单根据代码导入整理，**没有锁定或验证
-PyTorch / torchvision / timm 的组合**，不能视为可复现实验的环境锁文件。
-正式训练优先使用你原来能运行的环境，并另行导出版本清单。
-原眼球训练循环包含 CUDA 专用调用；本次未进行 CPU/MPS 训练适配。
-模型权重和真实数据需要自行提供，仅加载可信来源的 checkpoint / joblib 文件。
+使用 Python 3.10+ 及相互兼容的 PyTorch / torchvision / timm 版本。
+依赖版本未锁定，模型兼容性要求见 `docs/USAGE_NOTES.md`。
+
+眼球训练需要 CUDA，当前训练循环不支持 CPU/MPS。
+数据和权重需要自行提供，仅加载可信来源的 checkpoint / joblib 文件。
 
 ## 3. 统一命令
 
@@ -104,7 +99,7 @@ python run.py --dry-run human evaluate-eye \
 | mouse | `generate-demo` | `_generate_demo_data.py` |
 
 统一入口不改变模型参数；`evaluate-eye` 仅额外添加 `--eval`。
-依赖安装完成后，用 `python run.py <species> <workflow> --help` 查看原入口参数。
+依赖安装完成后，用 `python run.py <species> <workflow> --help` 查看入口参数。
 
 ## 4. 人类 / 小鼠眼球训练与单模态测试
 
@@ -128,14 +123,13 @@ bash scripts/evaluate_eye.sh
 小鼠示例：将 `SPECIES=mouse`，并换成小鼠数据和预训练权重。
 训练脚本支持 `NPROC`、`BATCH_SIZE`、`MASTER_PORT`、`TASK`、`BLR`、
 `LAYER_DECAY`、`DROP_PATH`、`NB_CLASSES`、`PYTHON` 等环境变量；
-末尾也可追加原 Python 入口参数。默认模板是便于配置的示例，
-**不是原实验超参数的统一替代**，历史参数见 `legacy/`。
+末尾也可追加 Python 入口参数。请按实验需求配置超参数，
+更多历史实验配置参考见 `legacy/`。
 
 模型的输入尺寸、分类头类别顺序和 checkpoint 必须匹配。
-即使 `--eval`，原脚本也会构建 `train/val/test` 三个数据集，均需存在。
+即使 `--eval`，脚本也会构建 `train/val/test` 三个数据集，均需存在。
 最佳权重位于 `${OUTPUT_ROOT}/${TASK}/checkpoint-best.pth`；
-原引擎实际用于选优的是 `(F1 + ROC_AUC + Kappa) / 3`，
-不是原 README 所称的单独 AUC。
+引擎用于选优的分数是 `(F1 + ROC_AUC + Kappa) / 3`。
 
 ## 5. 人类 OCT / OCTA 融合评测
 
@@ -188,7 +182,7 @@ python run.py mouse train-behavior \
 ## 7. 小鼠三模态融合
 
 必须有两路眼球权重与图像、已训练的步态/行为模型、相同测试个体，
-并仔细确认 `docs/MIGRATION.md` 中的原有对齐限制：
+个体对齐要求见 `docs/USAGE_NOTES.md`：
 
 ```bash
 python run.py mouse fuse \
@@ -212,7 +206,7 @@ python run.py mouse fuse \
 `S001 ... S004` 仅是占位 ID，需替换为完整测试个体顺序；
 `--eye_epochs` 用于输出文件命名，而非启动训练。
 若使用原来的增强文件命名，则按需添加 `--eye_is_augment`。
-原融合实现自动选择设备：无 CUDA 时使用 CPU，一块 GPU 时两路共用，
+融合实现自动选择设备：无 CUDA 时使用 CPU，一块 GPU 时两路共用，
 多块 GPU 时分别使用 `cuda:0` 和 `cuda:1`；没有单独的设备 CLI。
 连续年龄入口：
 
@@ -224,21 +218,11 @@ python run.py mouse continuous-age \
 
 该分数计算使用真实 `label`；不是无需真实年龄组信息的独立年龄回归模型。
 
-## 8. 校验与 GitHub 发布前检查
+## 8. 测试
 
 ```bash
 # 仅使用 Python 标准库；不启动训练，不需要数据或 GPU
 python -B -m unittest discover -s tests -v
 ```
 
-验证范围见 `docs/VALIDATION.md`，迁移明细与已知限制见 `docs/MIGRATION.md`。
-当前没有附带数据、权重、训练结果、`.git` 目录，也未推送远程仓库。
-
-发布前：
-
-1. 上传的是本目录整体，不要把其上级 `outputs/` 当作仓库根目录。
-2. 核查 `.gitignore`、`git status` 和待提交文件，避免上传图像、受试者信息、
-   特征表、checkpoint、Excel 和日志。新增文档图片应有意识地调整忽略规则。
-3. 在实际训练环境验证依赖版本、模型前向、类别与个体对齐后再声明可复现。
-4. 根据原代码来源核实授权、第三方 notices、论文引用与权重再分发权限。
-   **本次没有代你选择开源许可证或补写未经确认的引用信息。**
+测试覆盖语法、启动器、参数传递和本地模块完整性，不执行模型训练或推理。

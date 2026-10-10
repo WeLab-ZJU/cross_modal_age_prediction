@@ -1,5 +1,5 @@
-# Dependency inventory inferred from imports; NOT a validated environment lock.
-# Use the original experiment environment for numerical reproduction.
+# Eye training and fusion dependencies.
+# Versions are unpinned; use a compatible torch / torchvision / timm combination.
 -r requirements-tabular.txt
 torch
 torchvision
