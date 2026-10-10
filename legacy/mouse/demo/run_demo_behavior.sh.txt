@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Train and evaluate the behavior-modality classifier on the bundled demo CSVs.
+
+set -e
+cd "$(dirname "$0")/.."
+
+python train_behavior.py \
+    --train_csv  data_examples/behavior_train.csv \
+    --test_csv   data_examples/behavior_test.csv \
+    --n_features 28 \
+    --model_dir  outputs/demo_behavior_model \
+    --classifiers ExtraTrees MLP LM

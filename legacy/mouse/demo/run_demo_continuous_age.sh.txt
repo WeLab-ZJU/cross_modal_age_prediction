@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Turn a fused-feature CSV into a continuous biological-age score.
+
+set -e
+cd "$(dirname "$0")/.."
+
+python predict_continuous_age.py \
+    --input_csv  data_examples/fused_features_example.csv \
+    --output_dir outputs/demo_continuous_age

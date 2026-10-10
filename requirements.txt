@@ -1,0 +1,10 @@
+# Dependency inventory inferred from imports; NOT a validated environment lock.
+# Use the original experiment environment for numerical reproduction.
+-r requirements-tabular.txt
+torch
+torchvision
+timm
+Pillow
+tensorboard
+pycm
+openpyxl

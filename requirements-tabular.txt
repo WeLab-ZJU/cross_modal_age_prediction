@@ -1,0 +1,7 @@
+# CPU-only gait, behavior and continuous-age workflows.
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+joblib

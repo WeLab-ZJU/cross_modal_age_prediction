@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Fine-tune a ViT-Huge/14 HCF backbone on the eye (OCTA) modality.
+# Replace DATA_ROOT, HCF_CKPT and OUTPUT_ROOT with your own paths.
+
+set -e
+
+MODEL_TYPE="vit_huge_patch14"
+EPOCHS=1000
+INPUT_SIZE=196
+# DATA_TYPE="OCT"
+DATA_TYPE="OCTA"
+DATA_ROOT="<HUMAN_DATA_ROOT>/OCTA_500_augv2/${DATA_TYPE}"                       # ImageFolder with train/val/test
+HCF_CKPT="<PRETRAINED_ROOT>/${DATA_TYPE}/huge_196_900.pth"
+OUTPUT_ROOT="<HUMAN_OUTPUT_ROOT>/${DATA_TYPE}/${MODEL_TYPE}"
+
+CUDA_VISIBLE_DEVICES=2,3 python -m torch.distributed.run --nproc_per_node=4 --master_port=48799 \
+    train_eye.py \
+    --batch_size 12 \
+    --world_size 4 \
+    --model "${MODEL_TYPE}" \
+    --epochs "${EPOCHS}" \
+    --output_dir "${OUTPUT_ROOT}" \
+    --log_dir "${OUTPUT_ROOT}" \
+    --blr 1e-3 --layer_decay 0.75 \
+    --weight_decay 0.05 --drop_path 0.3 --reprob 0.25 --mixup 0.8 --cutmix 1.0 \
+    --nb_classes 4 \
+    --data_path "${DATA_ROOT}" \
+    --task "eye-${INPUT_SIZE}/finetune-HCF-${EPOCHS}" \
+    --finetune "${HCF_CKPT}" \
+    --input_size "${INPUT_SIZE}"

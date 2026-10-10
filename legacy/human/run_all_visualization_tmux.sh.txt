@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+SESSION_NAME="${1:-retf_all_vis}"
+WORK_DIR="<WORK_ROOT>"
+PYTHON_SCRIPT="<HUMAN_CODE_ROOT>/visualize_all_best_models.py"
+OUTPUT_ROOT="<HUMAN_OUTPUT_ROOT>/weeks/vis"
+LOG_DIR="${OUTPUT_ROOT}/logs"
+LOG_FILE="${LOG_DIR}/${SESSION_NAME}.log"
+CONDA_BIN="<CONDA_EXECUTABLE>"
+SCRIPT_PATH="$(readlink -f "$0")"
+
+if [[ "${1:-}" == "--worker" ]]; then
+    SESSION_NAME="${2:-retf_all_vis}"
+    LOG_FILE="${LOG_DIR}/${SESSION_NAME}.log"
+    mkdir -p "$LOG_DIR"
+    exec > >(tee -a "$LOG_FILE") 2>&1
+
+    printf '[tmux] started: %s\n' "$(date '+%F %T')"
+    "$CONDA_BIN" run --no-capture-output -n retf python "$PYTHON_SCRIPT" \
+        --output-root "$OUTPUT_ROOT" \
+        --device auto \
+        --methods gradcam,eigencam \
+        --target-layers auto \
+        --splits train,test,val \
+        --batch-size 1 \
+        --output-format pdf
+    status=$?
+    printf '[tmux] finished: %s, exit_code=%s\n' "$(date '+%F %T')" "$status"
+    exit "$status"
+fi
+
+if [[ ! -x "$CONDA_BIN" ]]; then
+    printf 'conda executable not found: %s\n' "$CONDA_BIN" >&2
+    exit 1
+fi
+if [[ ! -f "$PYTHON_SCRIPT" ]]; then
+    printf 'python program not found: %s\n' "$PYTHON_SCRIPT" >&2
+    exit 1
+fi
+if ! command -v tmux >/dev/null 2>&1; then
+    printf 'tmux is not installed or not on PATH.\n' >&2
+    exit 1
+fi
+if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+    printf 'tmux session already exists: %s\n' "$SESSION_NAME"
+    printf 'Attach with: tmux attach -t %s\n' "$SESSION_NAME"
+    exit 0
+fi
+
+mkdir -p "$LOG_DIR"
+tmux new-session -d \
+    -s "$SESSION_NAME" \
+    -c "$WORK_DIR" \
+    "$SCRIPT_PATH --worker $SESSION_NAME"
+
+printf 'Started tmux session: %s\n' "$SESSION_NAME"
+printf 'Attach with: tmux attach -t %s\n' "$SESSION_NAME"
+printf 'Log file: %s\n' "$LOG_FILE"

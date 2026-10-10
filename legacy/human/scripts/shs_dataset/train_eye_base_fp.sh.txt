@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Fine-tune a ViT-Base/16 backbone on the eye (fundus / FP) modality — single modality.
+# DATA_TAG selects the dataset folder under <HUMAN_DATA_ROOT>/ (dataset | merge).
+# Replace DATA_ROOT, HCF_CKPT and OUTPUT_ROOT with your own paths.
+#
+# Note: FP (fundus) typically has no dedicated RETFound weights in this setup; use generic MAE weights by default.
+#       If FP-specific HCF weights are available, set HCF_CKPT to their path.
+
+set -e
+
+DATA_TAG="dataset"
+MODEL_TYPE="vit_base_patch16"
+EPOCHS=500
+INPUT_SIZE=256
+DATA_TYPE="FP"                                                                          # Fundus modality
+DATA_ROOT="<HUMAN_DATA_ROOT>/${DATA_TAG}/${DATA_TYPE}"                       # ImageFolder with train/val/test
+HCF_CKPT="<BASELINE_PRETRAINED_ROOT>/mae_pretrain_vit_base.pth"
+# HCF_CKPT="<PRETRAINED_ROOT>/${DATA_TYPE}/base_256_900.pth"            # Use this line if FP-specific weights are available
+OUTPUT_ROOT="<HUMAN_OUTPUT_ROOT>/${DATA_TAG}/${DATA_TYPE}/mae-${MODEL_TYPE}"
+
+python -m torch.distributed.run --nproc_per_node=2 --master_port=48797 \
+    <HUMAN_CODE_ROOT>/train_eye.py \
+    --batch_size 12 \
+    --world_size 2 \
+    --model "${MODEL_TYPE}" \
+    --epochs "${EPOCHS}" \
+    --output_dir "${OUTPUT_ROOT}" \
+    --log_dir "${OUTPUT_ROOT}" \
+    --blr 5e-4 --layer_decay 0.65 \
+    --weight_decay 0.05 --drop_path 0.1 --reprob 0.25 --mixup 0.8 --cutmix 1.0 \
+    --nb_classes 4 \
+    --data_path "${DATA_ROOT}" \
+    --task "eye-${INPUT_SIZE}/finetune-HCF-${EPOCHS}" \
+    --finetune "${HCF_CKPT}" \
+    --input_size "${INPUT_SIZE}"
