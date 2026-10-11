@@ -8,15 +8,15 @@ and behavior modalities.
 | Branch | Contents |
 |---|---|
 | `main` | Project overview and language navigation |
-| [`english`](https://github.com/hanghanghanghanghanghang/cross_modal_age_prediction/tree/english) | Full English edition |
-| [`chinese`](https://github.com/hanghanghanghanghanghang/cross_modal_age_prediction/tree/chinese) | 完整中文说明版本 |
+| [`english`](https://github.com/WeLab-ZJU/cross_modal_age_prediction/tree/english) | Full English edition |
+| [`chinese`](https://github.com/WeLab-ZJU/cross_modal_age_prediction/tree/chinese) | 完整中文说明版本 |
 
 Each language branch contains a self-contained project at the repository
 root. Clone the edition you want:
 
 ```bash
 git clone --branch english --single-branch \
-  https://github.com/hanghanghanghanghanghang/cross_modal_age_prediction.git
+  https://github.com/WeLab-ZJU/cross_modal_age_prediction.git
 cd cross_modal_age_prediction
 # Read README.md before installing dependencies or running workflows.
 ```
